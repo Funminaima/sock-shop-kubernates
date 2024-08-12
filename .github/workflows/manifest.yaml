@@ -6,9 +6,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  # pull_request:
+  #   branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -25,12 +25,36 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.REGION }}
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Install helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Update Kubeconfig
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          aws eks update-kubeconfig --region eu-west-2 --name sockShop
+          kubectl create namespace sock-shop
+
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/aws/deploy.yaml
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.yaml
+
+      - name: Add helm chart
+        run: |
+          helm repo add prometheus  https://prometheus-community.github.io/helm-charts
+
+      - name: Upgrade helm charts
+        run: helm repo update
+
+      - name: Install prometheus chart
+        run: helm upgrade --install prometheus prometheus/kube-prometheus-stack
+
+      - name: Apply manifest
+        run: kubectl apply -f manifest/
