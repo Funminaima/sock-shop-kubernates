@@ -35,8 +35,8 @@ jobs:
       - name: Install Kubectl
         uses: azure/setup-kubectl@v3
 
-      - name: Create S3 bucket to store terraform state files
-        run: aws s3 mb s3://sock-shop-bucket-10-08-2024
+      # - name: Create S3 bucket to store terraform state files
+      #   run: aws s3 mb s3://sock-shop-bucket-10-08-2024
 
       - name: Install helm
         uses: azure/setup-helm@v4.2.0
