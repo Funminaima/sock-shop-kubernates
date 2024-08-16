@@ -43,17 +43,18 @@ jobs:
           aws eks update-kubeconfig --region eu-west-2 --name sockShop
 
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/aws/deploy.yaml
-          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.yaml
+          kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.crds.yaml
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.yaml
 
       - name: Add helm chart
         run: |
-          helm repo add prometheus  https://prometheus-community.github.io/helm-charts
+          helm repo add prometheus https://prometheus-community.github.io/helm-charts
 
       - name: Upgrade helm charts
         run: helm repo update
 
       - name: Install prometheus chart
-        run: helm upgrade --install prometheus prometheus/kube-prometheus-stack
+        run: helm install prometheus prometheus/kube-prometheus-stack
 
       - name: Apply manifest
         run: kubectl apply -f manifest/
